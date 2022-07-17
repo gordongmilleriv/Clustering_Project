@@ -1,0 +1,144 @@
+---
+title: "Lab09_MillerGordon"
+output: 
+  html_document:
+    number_section: no
+    toc: yes
+    toc_depth:  3
+    toc_float: yes
+    code_folding: show
+    css: lab_templet.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+library(caret)
+library(cluster) 
+library(reshape2)
+library(tidyverse) 
+library(corrplot) 
+library(gridExtra) 
+library(factoextra)  
+library(kableExtra)
+library(here)
+```
+
+# Read in Data
+```{r}
+data <- read.csv(file.choose())
+glimpse(data)
+```
+All of our features are doubles/numerics except for cust_id which is a character. When creating a correlation table we will only drop cust_id from the data. 
+
+# Data exploration 
+
+## Missing Values
+```{r}
+data %>% 
+  summarise_all(funs(sum(is.na(.)))) %>% 
+  gather() %>% 
+  mutate(percent =round(value/nrow(data)*100,2))
+
+# Reaplace NA values 
+data <- data %>% 
+  mutate(CREDIT_LIMIT = ifelse(is.na(CREDIT_LIMIT), mean(CREDIT_LIMIT, na.rm = TRUE), CREDIT_LIMIT), MINIMUM_PAYMENTS = ifelse(is.na(MINIMUM_PAYMENTS), mean(MINIMUM_PAYMENTS, na.rm = TRUE), MINIMUM_PAYMENTS))
+```
+We only have 313 observations missing from the minimum payments feature which is only 3.5% of observations. And there is one observations missing from the credit_limit feature. Since both of these features are numeric values I replaced the NA values with the average value for each feature. 
+
+## Correlation Matrix 
+```{r}
+Corr_data <- data %>% 
+  select(-CUST_ID)
+
+corr_col_names <- c("Bal", "Bal_f", "Pur", "oneoff_pur", "inst_pur", "cash_adv", "pur_f", "oneoff_pur_f", "pur_inst_fr", "cash_adv_freq", "cash_adv_trx", "pur_trx", "credit_lim", "payments", "min_pay", "prc_full_pay", "tenure")
+
+names(Corr_data) <- corr_col_names
+
+correlation<-round(cor(Corr_data),4)
+
+corrplot(correlation)
+```
+From our correlation plot we can gather that most of the correlations between variables stem from them being similar values. For instance the PURCHASES variable has a somewhat strong positive correlation with other purchase related variables such as PURCHASE_FREQUENCY, ONEOFF_PURCHASES AND INSTALLMENTS PURCHASES. Since our goal is to produce a marketing strategy we'd probably be most interested in variables such as CREDIT_LIMIT, PURCHASES_FREQUENCY, AND PAYMENTS. I found that balance and credit_limit had the highest correlation (which is quite reasonable), followed by payments and purchases. PURCHASES_FREQUENCY -not including other purchases variables - has a slight positive correlation with prc_full_payments and a slight negative correlation with cash_advance_frequency. 
+
+
+## Outlier detection
+```{r}
+melt_data <- melt(Corr_data)
+
+ggplot(melt_data, aes(x=variable, y = value)) + geom_boxplot() + facet_wrap(~variable, scale = "free")
+```
+The following boxplots use the IQR to classify possible outliers for each variable in the data. As we can see there are plenty of outliers in each of the variables. However, we will not be removing any outliers from the data as it could have severe impacts on our clustering algorithm. I believe that the most of the outliers are from more wealthy credit users who happen to make larger purchases and/or use their credit card more often for transactions. Some of the outliers may also come from more irresponsible credit users who are using credit cards frequently when they should not. It will be the models job to separate these two types of consumers by evaluating variables such as credit_limit and balance.  
+
+## Standardize Features
+```{r}
+data <- scale(data[,-1])
+```
+Standardizing the data will allow our model to be more efficient
+
+# Model Training
+
+## Compute Distance Matrix
+```{r}
+# Compute distances
+res.dist <- dist(data, 
+                 method = "euclidean")
+```
+
+# Optimal # clusters - elbow method
+```{r}
+set.seed(1234)
+fviz_nbclust(
+  data, kmeans,
+  method = "wss")
+```
+Using the elbow method it appears that 7 clusters is ideal for defining our customer groups.
+
+# Create Dendrogram
+```{r}
+res.hc.ward <- hclust(
+  d = res.dist,
+  method = "ward.D2")
+```
+
+# Cut dendrogram and visualize clusters
+```{r}
+grp <- cutree(res.hc.ward, k = 7)
+
+# Add clusters to data set
+data_new <-as.data.frame(data)
+data_new$cluster<-grp
+
+# visualize clusters
+fviz_cluster(
+  list(data = data, cluster = grp),
+  palette = c("#F91A08", "#FF8B09", "#FFFE09","#1DFF09","#09FFF9","#094BFF", "#FF4EF9"),
+  ellipse.type = "convex", # Concentration ellipse
+  show.clust.cent = FALSE, 
+  ggtheme = theme_minimal())
+
+
+```
+It appears that the clusters are quite difficult to visualize due to the outliers in our data. From the visualization alone I would assume that most of the outliers are in clusters 7 or 5 and since the values for Dim1 in these two clusters are so large it makes it difficult to visualize any of the remaining clusters. I also noticed that observation 2160 is certainly an outlier that has caused cluster 2 to have to stretch out. I wonder if this observation were dropped if cluster 2 may adopt some observations from nearby clusters. 
+
+
+# Characterizing Clusters
+```{r}
+cluster_summary <- data_new %>%
+  group_by(cluster) %>% 
+  summarise(n = n(), Mean_BALANCE = mean(BALANCE), Mean_BALANCE_FREQUENCY = mean(BALANCE_FREQUENCY), Mean_PURCHASES = mean(PURCHASES),Mean_ONEOFF_PURCHASES = mean(ONEOFF_PURCHASES), Mean_INSTALLMENTS_PURCHASES = mean(INSTALLMENTS_PURCHASES), Mean_CASH_ADVANCE = mean(CASH_ADVANCE),Mean_PURCHASES_FREQUENCY = mean(PURCHASES_FREQUENCY), Mean_ONEOFF_PURCHASES_FREQ = mean(ONEOFF_PURCHASES_FREQUENCY), Mean_PURCHASES_INSTALLMENTS_FREQ = mean(PURCHASES_INSTALLMENTS_FREQUENCY),Mean_CASH_ADVANCE_FREQUENCY = mean(CASH_ADVANCE_FREQUENCY), Mean_CASH_ADVANCE_TRX = mean(CASH_ADVANCE_TRX), Mean_PURCHASES_TRX = mean(PURCHASES_TRX),Mean_CREDIT_LIMIT = mean(CREDIT_LIMIT), Mean_PAYMENTS = mean(PAYMENTS),Mean_MINIMUM_PAYMENTS = mean(MINIMUM_PAYMENTS), Mean_PRC_FULL_PAYMENT = mean(PRC_FULL_PAYMENT), Mean_TENURE = mean(TENURE))
+```
+
+After summarizing each of the clusters it appears that my hypothesis was correct, the seventh cluster is composed of wealthy individuals with extremely high credit limits, balances, and purchases and payments. Of course we want to market to individuals who have a lot of money to spend and also spend this money often but in our data there are only 23 individuals in this cluster. If this sample is representative of the population then it may not be reliable to market to such a small segment of customers. However, if the product we wish to market is a premium product and after market testing cluster 7 appears receptive then this may be an ideal target segment. 
+
+Other target segments that stood out were clusters 2, 3 and 5. 
+
+
+Segment 2 has nearly the highest average balance, highest mean cash advance and highest cash advance frequency meaning these customers may not use their credit cards the most but they still have plenty of disposable cash to make purchases. Note these customers have one of the lowest average purchase frequencies but this may be because purchases are only recorded over credit card and as we've discovered these customers don't use credit cards very often. This may lead us to believe that these customers are older on average as the older population are typically more skeptical of using credit cards and online banking transaction methods. If we are interested in marketing a product meant for older people then segment 2 may be ideal. 
+
+Cluster 3 on average makes purchases at an above average rate, however their credit limit is about average and balance is below average. This cluster also has the highest number of people among the seven clusters, meaning there is opportunity to reach many people by targetting this segment. These customers may not have the most money to spend but they make purchases quite often. This leads us to believe that these consumers are more impulsive with their spending habits and are likely younger. If we're interested in marketing a product to teens or young adults this groups spending habits and interests may align best with the marketed product. 
+
+Lastly there is a cluster 5. This cluster stood out since it had the third highest average balance and second highest mean purchases. This group also has the second  highest average credit limit and makes one off purchases at rates higher than most of the other groups. I believe this segment is made up of middle to upper class people in their 30s or 40s. Due to these customers tendencies to make oneoff purchases they may not be ideal if our product/service requires repetitive purchases to make customers profitable.  
+
+The remaining clusters, clusters 1, 4 and 6, seem to be less than ideal for our marketing strategy as these customers have average or below average balances and below average purchase rates. These may work if we're interested in marketing to lower-income groups but in all likelihood the other clusters mentioned would yield greater results.
