@@ -6,7 +6,20 @@ For this project I've taken on the hypothetical role as a consultant for a compa
 1. Download `Clustering_project.Rmd` Markdown file
 2. Download the provided csv data file: `ccdata.csv`
 3. Download `lab_templet.css` in the same folder as `ccdata.csv` - used for formatting Rmd file
-4. Open and knit `Clustering_project.Rmd` as html in R.Studio 
-5. After initiating the knit select `ccdata.csv` from your file directory when prompted to choose a file to upload
+4. Open R.Studio and download required packages
+5. Open and knit `Clustering_project.Rmd` as html in R.Studio 
+6. After initiating the knit select `ccdata.csv` from your file directory when prompted to choose a file to upload
 
-## What is this useful?
+## Required Packages
+- caret
+- cluster
+- reshape2
+- tidyverse
+- corrplot
+- gridExtra
+- factoextra
+- kableExtra
+- here
+
+## Why is this useful?
+
