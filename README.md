@@ -21,5 +21,11 @@ For this project I've taken on the hypothetical role as a consultant for a compa
 - kableExtra
 - here
 
+## What does this project do?
+- Replace numeric NA values with mean value for the variable
+- Evaluate correlations between features 
+- Evaluate outliers
+- Standardize features/
+
 ## Why is this useful?
 
