@@ -28,9 +28,14 @@ For this project I've taken on the hypothetical role as a consultant for a compa
 - Standardize features 
 - Train model using a Euclidean Distance Matrix
 - Determine optimal no. of clusters using elbow method
-- Create a cut a dendrogram at the optimal no. of clusters
+- Create and cut a dendrogram at the optimal no. of clusters
 - Visualize Clusters using cluster package
-- 
+- Use group_by to aggregate data by cluster and compare/contrast average attribute values for each cluster
+- Full analysis of each cluster and what product/service would be most well suited for these clusters of customers
 
 ## Why is this useful?
+The results of this project can prove incredibly useful to any company who wishes to determine what consumer target groups are ideal for a product/service of interest. Of course companies could take this data and without machine learning simply market to consumers that meet certain thresholds (> 100,000 balance, > 50 purchases a month, etc.). However, with clustering there is less guessing about how large or narrow a target group should be or how thresholds should be determined. As mentioned in the "Characerizing clusters" portion of `Clustering_project.Rmd`, if there are certain thresholds stakeholders are interested these clusters can be narrowed down by removing outliers. 
 
+What I found was the most interesting result I achieved in this project was that I could vaguely determine the demographics of the clusters based only on banking data. Of course some of these demographic descriptors are derived from generalizations, such as, younger people have less money and make frequent purchases. This could be very useful for a company who is targetting new customers and doesn't have any demographic data. However, it would be wise to spend the extra money for demographic data and merge that data with the banking data to vastly improve the results of our clustering algorithm. 
+
+If intersted in reading my full analysis and observing source code please follow the instructions under "How to run this project."
