@@ -1,6 +1,6 @@
 # Clustering_Project
 ## Brief Description 
-For this project I've taken on the hypothetical role as a consultant for a company's marketing department. The client is interested in forming a marketing strategy for a new product and wants to determine what customers would be most receptive to their product. The data provided for this task includes customer id's and credit card data such as balance, purchases, purchase freq, etc. I decided to use a clustering algorithm to define groups of customers whom are most likely to buy this new product. Purchase likelihood is determined by factors such as disposable income, purchase frequency, bank balance, etc. 
+For this project I've taken on the hypothetical role as a consultant for a company's marketing department. The client is interested in forming a marketing strategy for a new product and wants to determine what customers would be most receptive to their product. The data provided for this task includes customer id's and credit card data such as balance, purchases, purchase freq, etc. I decided to use a clustering algorithm to determine groups of customers based on their purchase behaviors and disposable income. I'll leave the decision making up to the stakeholders but 
 
 ## How to run this project
 1. Download `Clustering_project.Rmd` Markdown file
@@ -25,7 +25,12 @@ For this project I've taken on the hypothetical role as a consultant for a compa
 - Replace numeric NA values with mean value for the variable
 - Evaluate correlations between features 
 - Evaluate outliers
-- Standardize features/
+- Standardize features 
+- Train model using a Euclidean Distance Matrix
+- Determine optimal no. of clusters using elbow method
+- Create a cut a dendrogram at the optimal no. of clusters
+- Visualize Clusters using cluster package
+- 
 
 ## Why is this useful?
 
