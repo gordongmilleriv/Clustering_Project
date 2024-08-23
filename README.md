@@ -1,4 +1,4 @@
-# Clustering_Project
+# Marketing Strategy Clustering Project
 ## Brief Description 
 For this project I've taken on the hypothetical role as a consultant for a company's marketing department. The client is interested in forming a marketing strategy for a new product and wants to determine what customers would be most receptive to their product. The data provided for this task includes customer id's and credit card data such as balance, purchases, purchase freq, etc. I decided to use a clustering algorithm to determine groups of customers based on their purchase behaviors and disposable income. A client/staholders could leverage these clusters of potential customers to influence their marketing outreach strategy or compose an A/B test on selected clusters of interest.
 
